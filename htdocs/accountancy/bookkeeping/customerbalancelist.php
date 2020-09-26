@@ -284,8 +284,8 @@ if ($action != 'export_csv')
 		$subledger_account = $debit_credit_array[$i][0];
 		$customer_name = $debit_credit_array[$i][1];
 		$opening_balance = isset($subledger_opening_balance["{$subledger_account}"]) ? $subledger_opening_balance["{$subledger_account}"] : 0;
-		$debit = $debit_credit_array[$i][1];
-		$credit = $debit_credit_array[$i][2];
+		$debit = $debit_credit_array[$i][2];
+		$credit = $debit_credit_array[$i][3];
 		$total_opening_balance += $opening_balance;
 
 		$link = '';
