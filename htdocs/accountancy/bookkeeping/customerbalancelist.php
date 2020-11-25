@@ -252,8 +252,10 @@ if ($action != 'export_csv')
 	print '</tr>';
 
 	print '<tr class="liste_titre">';
-	print_liste_field_titre("AccountAccounting", $_SERVER['PHP_SELF'], "t.numero_compte", "", $param, "", $sortfield, $sortorder);
-	print_liste_field_titre("Label", $_SERVER['PHP_SELF'], "t.label_operation", "", $param, "", $sortfield, $sortorder);
+	print_liste_field_titre("Subledger Account Number", $_SERVER['PHP_SELF'], "", "", $param, "", $sortfield, $sortorder);
+	print_liste_field_titre("Customer Name", $_SERVER['PHP_SELF'], "", "", $param, "", $sortfield, $sortorder);
+	//print_liste_field_titre("AccountAccounting", $_SERVER['PHP_SELF'], "t.numero_compte", "", $param, "", $sortfield, $sortorder);
+	//print_liste_field_titre("Label", $_SERVER['PHP_SELF'], "t.label_operation", "", $param, "", $sortfield, $sortorder);
 	print_liste_field_titre("OpeningBalance", $_SERVER['PHP_SELF'], "", $param, "", 'class="right"', $sortfield, $sortorder);
 	print_liste_field_titre("Debit", $_SERVER['PHP_SELF'], "t.debit", "", $param, 'class="right"', $sortfield, $sortorder);
 	print_liste_field_titre("Credit", $_SERVER['PHP_SELF'], "t.credit", "", $param, 'class="right"', $sortfield, $sortorder);
@@ -269,6 +271,29 @@ if ($action != 'export_csv')
 	$sous_total_opening_balance = 0;
 	$displayed_account = "";
 
+	// fetch code_compta, nom, opening_balance given search date start
+	$sql = "select ".MAIN_DB_PREFIX."societe.code_compta, (SUM(t.debit) - SUM(t.credit)) as opening_balance from "
+		.MAIN_DB_PREFIX."accounting_bookkeeping as t inner join ".MAIN_DB_PREFIX."societe on t.subledger_account = "
+		.MAIN_DB_PREFIX."societe.code_compta and t.doc_date < '".$db->idate($search_date_start)."' where t.entity in (1) group by "
+		.MAIN_DB_PREFIX."societe.code_compta";
+	$resql = $db->query($sql);
+	$nrows = $resql->num_rows;
+	$opening_balance_array = $resql->fetch_all();
+	$subledger_opening_balance = array();
+	foreach($opening_balance_array as $row) {
+		$subledger_opening_balance["{$row[0]}"] = $row[1];
+	}
+
+	// fetch code_compta, nom, debit, credit for search date range
+	$sql = "select ".MAIN_DB_PREFIX."societe.code_compta, MAX(".MAIN_DB_PREFIX."societe.nom) as nom, SUM(t.debit) as debit, SUM(t.credit) as credit from "
+		.MAIN_DB_PREFIX."accounting_bookkeeping as t inner join ".MAIN_DB_PREFIX."societe on t.subledger_account = "
+		.MAIN_DB_PREFIX."societe.code_compta and t.doc_date between '".$db->idate($search_date_start)."' and '".$db->idate($search_date_end)
+		."' where t.entity in (1) group by ".MAIN_DB_PREFIX."societe.code_compta";
+	$resql = $db->query($sql);
+	$nrows = $resql->num_rows;
+	$debit_credit_array = $resql->fetch_all();
+
+/*
 	$sql = "SELECT t.numero_compte, (SUM(t.debit) - SUM(t.credit)) as opening_balance";
 	$sql .= " FROM ".MAIN_DB_PREFIX."accounting_bookkeeping as t";
 	$sql .= " WHERE t.entity = ".$conf->entity;		// Never do sharing into accounting features
@@ -282,18 +307,24 @@ if ($action != 'export_csv')
 		$arr = $resql->fetch_array();
 		$opening_balances["'".$arr['numero_compte']."'"] = $arr['opening_balance'];
 	}
-
-	foreach ($object->lines as $line)
+*/
+//	foreach ($object->lines as $line)
+        for($i = 0; $i < count($debit_credit_array); $i++)
 	{
+                $subledger_account = $debit_credit_array[$i][0];
+                $customer_name = $debit_credit_array[$i][1];
+                $opening_balance = isset($subledger_opening_balance["{$subledger_account}"]) ? $subledger_opening_balance["{$subledger_account}"] : 0;
+                $debit = $debit_credit_array[$i][2];
+                $credit = $debit_credit_array[$i][3];
+                $total_opening_balance += $opening_balance;
+
 		$link = '';
-		$total_debit += $line->debit;
-		$total_credit += $line->credit;
+		$total_debit += $debit; //$line->debit;
+		$total_credit += $credit; //$line->credit;
 		$description = $object->get_compte_desc($line->numero_compte); // Search description of the account
 		$root_account_description = $object->get_compte_racine($line->numero_compte);
-		$opening_balance = isset($opening_balances["'".$line->numero_compte."'"]) ? $opening_balances["'".$line->numero_compte."'"] : 0;
-		$total_opening_balance += $opening_balance;
 		if (empty($description)) {
-			$link = '<a href="'.DOL_URL_ROOT.'/accountancy/admin/card.php?action=create&accountingaccount='.length_accountg($line->numero_compte).'">'.img_edit_add().'</a>';
+			//$link = '<a href="'.DOL_URL_ROOT.'/accountancy/admin/card.php?action=create&accountingaccount='.length_accountg($line->numero_compte).'">'.img_edit_add().'</a>';
 		}
 		print '<tr class="oddeven">';
 
@@ -308,9 +339,9 @@ if ($action != 'export_csv')
 			}
 
 			// Show first line of a break
-			print '<tr class="trforbreak">';
-			print '<td colspan="7" style="font-weight:bold; border-bottom: 1pt solid black;">'.$line->numero_compte.($root_account_description ? ' - '.$root_account_description : '').'</td>';
-			print '</tr>';
+			//print '<tr class="trforbreak">';
+			//print '<td colspan="7" style="font-weight:bold; border-bottom: 1pt solid black;">'.$line->numero_compte.($root_account_description ? ' - '.$root_account_description : '').'</td>';
+			//print '</tr>';
 
 			$displayed_account = $root_account_description;
 			$sous_total_debit = 0;
@@ -320,12 +351,14 @@ if ($action != 'export_csv')
 
 		// $object->get_compte_racine($line->numero_compte);
 
-		print '<td>'.length_accountg($line->numero_compte).'</td>';
-		print '<td>'.$description.'</td>';
+		//print '<td>'.length_accountg($line->numero_compte).'</td>';
+		//print '<td>'.$description.'</td>';
+                print '<td>'.length_accountg($subledger_account).'</td>';
+                print '<td>'.$customer_name.'</td>';
 		print '<td class="nowraponall right">'.price($opening_balance).'</td>';
-		print '<td class="nowraponall right">'.price($line->debit).'</td>';
-		print '<td class="nowraponall right">'.price($line->credit).'</td>';
-		print '<td class="nowraponall right">'.price($opening_balance + $line->debit - $line->credit).'</td>';
+		print '<td class="nowraponall right">'.price($debit).'</td>';
+		print '<td class="nowraponall right">'.price($credit).'</td>';
+		print '<td class="nowraponall right">'.price($opening_balance + $debit - $credit).'</td>';
 		print '<td class="center">'.$link;
 		print '</td>';
 		print "</tr>\n";
