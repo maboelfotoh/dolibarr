@@ -2477,6 +2477,18 @@ elseif ($id || $ref)
 					if (!empty($conf->productbatch->enabled)) $colspan++;
 					if (!empty($conf->stock->enabled)) $colspan++;
 
+					// hack that adds entry in expeditiondet_extrafields for shipment so that it's complementary attributes are displayed
+					$attribs = $extrafields->attributes['expeditiondet']['label'];
+					$str = "";
+					$strvals = "";
+					foreach(array_keys($attribs) as $attrib) {
+						$str .= ", {$attrib}";
+						$strvals .= ", ''";
+					}
+					$sql = "INSERT INTO ".MAIN_DB_PREFIX."expeditiondet_extrafields(fk_object".$str.") VALUES ('".$lines[$i]->id."'{$strvals})";
+					$db->query($sql);
+					// hack ends
+
 					$line = $lines[$i];
 					$line->fetch_optionals();
 
