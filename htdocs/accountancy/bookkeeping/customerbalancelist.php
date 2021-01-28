@@ -293,6 +293,17 @@ if ($action != 'export_csv')
 	$nrows = $resql->num_rows;
 	$debit_credit_array = $resql->fetch_all();
 
+        // add customers with an opening balance but no transactions for the search date range
+        foreach($subledger_opening_balance as $subledger_account => $opening_balance) {
+                $hasEntry = false;
+                foreach($debit_credit_array as $row) {
+                        if(isset($ob["{$row[0]}"])) { $hasEntry = true; break; }
+                }
+                if(!$hasEntry) {
+                        array_push($debit_credit_array, array($subledger_account, $opening_balance, 0, 0, 0));
+                }
+        }
+
 /*
 	$sql = "SELECT t.numero_compte, (SUM(t.debit) - SUM(t.credit)) as opening_balance";
 	$sql .= " FROM ".MAIN_DB_PREFIX."accounting_bookkeeping as t";
