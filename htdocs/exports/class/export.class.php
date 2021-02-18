@@ -666,8 +666,26 @@ class Export
 								//$tmp = dol_eval($computestring, 1, 0);
 								//$obj->$alias = $tmp;
 
-								$this->error = "ERROPNOTSUPPORTED. Operation ".$computestring." not supported. Export of 'computed' extrafields is not yet supported, please remove field.";
-								return -1;
+								// BEGIN HACK //
+								// TODO Needs fixing
+								// This is hard-coded for complementary attribute named equipmentserials defined for Shipping module
+								if(isset($obj->c_rowid)) {
+									if($obj->c_rowid > 0) {
+										global $object;
+										if(!is_object($object)) {
+											include_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
+											$object = new Expedition($this->db);
+										}
+										$object->fetch($obj->c_rowid);
+										$tmp = dol_eval($computestring, 1, 0);
+										$obj->extra2_equipmentserials = $tmp;
+										$obj->$alias = $tmp;
+									}
+								} else {
+									$this->error = "ERROPNOTSUPPORTED. Operation ".$computestring." not supported. Export of 'computed' extrafield$
+									return -1;
+								}
+								// END HACK //
 							}
 						}
 					}
