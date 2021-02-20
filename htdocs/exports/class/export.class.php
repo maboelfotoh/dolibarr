@@ -682,7 +682,7 @@ class Export
 										$obj->$alias = $tmp;
 									}
 								} else {
-									$this->error = "ERROPNOTSUPPORTED. Operation ".$computestring." not supported. Export of 'computed' extrafield$
+									$this->error = "ERROPNOTSUPPORTED. Operation ".$computestring." not supported. Export of 'computed' extrafields is not yet supported, please remove field.";
 									return -1;
 								}
 								// END HACK //
