@@ -1320,6 +1320,9 @@ function print_left_eldy_menu($db, $menu_array_before, $menu_array_after, &$tabM
 				// Balance
 				$newmenu->add("/accountancy/bookkeeping/balance.php?mainmenu=accountancy&amp;leftmenu=accountancy_accountancy", $langs->trans("AccountBalance"), 1, $user->rights->accounting->mouvements->lire);
 
+				// Customer Balancer List
+				$newmenu->add("/accountancy/bookkeeping/customerbalancelist.php?mainmenu=accountancy&amp;leftmenu=accountancy_accountancy", $langs->trans("CustomerBalanceList"), 1, $user->rights->accounting->mouvements->lire);
+
 				// General Ledger
 				$newmenu->add("/accountancy/bookkeeping/listbyaccount.php?mainmenu=accountancy&amp;leftmenu=accountancy_accountancy", $langs->trans("Bookkeeping"), 1, $user->rights->accounting->mouvements->lire);
 

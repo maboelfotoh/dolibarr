@@ -121,6 +121,7 @@ WriteBookKeeping=Register transactions in accounting
 Bookkeeping=Ledger
 BookkeepingSubAccount=Subledger
 AccountBalance=Account balance
+CustomerBalanceList=Customer balance list
 ObjectsRef=Source object ref
 CAHTF=Total purchase vendor before tax
 TotalExpenseReport=Total expense report
