@@ -336,14 +336,13 @@ if ($action != 'export_csv')
 
 	//foreach ($object->lines as $line)
 	for($i = 0; $i < count($debit_credit_array); $i++)
-//TODO MHA...
 	{
 		$subledger_account = $debit_credit_array[$i][0];
 		$customer_name = $debit_credit_array[$i][1];
 		$opening_balance = isset($subledger_opening_balance["{$subledger_account}"]) ? $subledger_opening_balance["{$subledger_account}"] : 0;
 		$debit = $debit_credit_array[$i][2];
 		$credit = $debit_credit_array[$i][3];
-		$total_opening_balance += $opening_balance;
+		//$total_opening_balance += $opening_balance;
 
 		// reset before the fetch (in case of the fetch fails)
 		$accountingaccountstatic->id = 0;
@@ -359,7 +358,7 @@ if ($action != 'export_csv')
 		$link = '';
 		$total_debit += $debit; //$line->debit;
 		$total_credit += $credit; //$line->credit;
-		$opening_balance = isset($opening_balances["'".$line->numero_compte."'"]) ? $opening_balances["'".$line->numero_compte."'"] : 0;
+		//$opening_balance = isset($opening_balances["'".$line->numero_compte."'"]) ? $opening_balances["'".$line->numero_compte."'"] : 0;
 		$total_opening_balance += $opening_balance;
 
 		$tmparrayforrootaccount = $object->getRootAccount($line->numero_compte);
