@@ -676,6 +676,27 @@ class Export
 											include_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
 											$object = new Expedition($this->db);
 										}
+
+										// hard-coded for the following Shipments complementary attributes (lines) computed field expression
+										// to ensure that products counter gets reset for each shipment row fetch:
+										//
+										// (count($object->lines) > 0) && (($res = $db->query('select llx_equipement.ref from llx_equipement,llx_equipementevt
+										//  where llx_equipementevt.fk_expedition = '.$object->lines[0]->fk_expedition.'
+										//   and llx_equipementevt.fk_equipement = llx_equipement.rowid
+										//     and llx_equipement.fk_product = '.$object->lines[ isset($GLOBALS['xjkvn']) ?
+										//       ++$GLOBALS['xjkvn'] % count($object->lines): $GLOBALS['xjkvn'] = 0 ]->fk_product))
+										//        && ($arr = $res->fetch_all()) ) ? 'S/N: '
+										//         . implode(', ', array_map(function ($entry) { return $entry[0]; }, $arr)) : ''
+										global $c_rowid_tracker;
+										if(isset($c_rowid_tracker)) {
+											if($c_rowid_tracker != $obj->c_rowid) {
+												$c_rowid_tracker = $obj->c_rowid;
+												$object->fetch($obj->c_rowid);
+												unset($GLOBALS['xjkvn']);
+											}
+										}
+										else $c_rowid_tracker = $obj->c_rowid;
+
 										$object->fetch($obj->c_rowid);
 										$tmp = dol_eval($computestring, 1, 0);
 										$obj->extra2_equipmentserials = $tmp;
